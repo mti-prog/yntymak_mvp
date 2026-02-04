@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:yntymak_mvp/core/app_theme.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFFF4F9F1), // Твой цвет из задания
+      backgroundColor: AppTheme.bgLight, // Твой цвет из задания
       body: Center(
         child: Image(
           image: AssetImage('assets/images/logo.jpg'),

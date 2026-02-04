@@ -1,35 +1,119 @@
 import 'package:flutter/material.dart';
+import 'sign_up_screen.dart'; // Импортируем экран регистрации
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  // Ключ для управления формой
+  final _formKey = GlobalKey<FormState>();
+
+  // Контроллеры для получения текста из полей
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // Логика нажатия на кнопку входа
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      // Если валидация прошла успешно
+      print("Email: ${_emailController.text}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Входим в систему...')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Заголовок Login
-            Text(
-              'Login',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                color: const Color(0xFF1B3344), // Темно-синий из темы
-              ),
-            ),
-            const SizedBox(height: 32),
+      body: SafeArea(
+        // Оборачиваем в SingleChildScrollView, чтобы не было Overflow при открытии клавиатуры
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Form(
+            key: _formKey, // Привязываем ключ
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 80),
+                Text(
+                  'Login',
+                  style: Theme.of(context).textTheme.displayLarge,
+                ),
+                const SizedBox(height: 32),
 
-            // Поле ввода Email
-            const TextField(
-              decoration: InputDecoration(
-                hintText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-              keyboardType: TextInputType.emailAddress,
+                // Поле Email с валидацией
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    hintText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  validator: (value) {
+                    if (value == null || !value.contains('@')) {
+                      return 'Введите корректный Email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Поле Пароль
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true, // Скрывает символы
+                  decoration: const InputDecoration(
+                    hintText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.length < 6) {
+                      return 'Пароль должен быть не менее 6 символов';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Кнопка Forgot Password
+                Align(
+                  child: TextButton(
+                    onPressed: () {},
+                    child: const Text('Forgot Password?', style: TextStyle(color: Colors.grey)),
+                  )
+                ),
+                const SizedBox(height: 24),
+
+                // Кнопка входа
+                ElevatedButton(
+                  onPressed: _submit,
+                  child: const Text('Login'),
+                ),
+                const SizedBox(height: 16),
+
+                // Переход на регистрацию
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        // Обычный переход, чтобы можно было вернуться
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                        );
+                      },
+                      child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
