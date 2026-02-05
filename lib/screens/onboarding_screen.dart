@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yntymak_mvp/core/app_theme.dart';
 import 'login_screen.dart';
 import '../models/onboarding_model.dart';
 
@@ -37,7 +38,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const SizedBox(height: 40),
                       Text(
                         contents[index].title,
-                        style: Theme.of(context).textTheme.displayLarge,
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          fontSize: 28,
+                          color: AppTheme.primaryDark
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
