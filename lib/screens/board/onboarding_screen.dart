@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yntymak_mvp/core/app_theme.dart';
 import '../login_sign_up/login_screen.dart';
 import '../../models/onboarding_model.dart';
@@ -38,10 +39,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const SizedBox(height: 40),
                       Text(
                         contents[index].title,
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: 28,
-                          color: AppTheme.primaryDark
-                        ),
+                        style: Theme.of(context).textTheme.displayLarge
+                            ?.copyWith(
+                              fontSize: 28,
+                              color: AppTheme.primaryDark,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -62,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               contents.length,
-                  (index) => buildDot(index, context),
+              (index) => buildDot(index, context),
             ),
           ),
 
@@ -70,22 +72,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Padding(
             padding: const EdgeInsets.all(40.0),
             child: ElevatedButton(
-              onPressed: () {
-                if (_currentIndex == contents.length - 1) {
-                  // Если последний слайд — идем на логин
+              // Внутри метода onPressed кнопки на последнем слайде:
+              onPressed: () async {
+                // Сохраняем, что онбординг пройден
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('showOnboarding', false);
+
+                // Переходим на логин
+                if (mounted) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
-                } else {
-                  // Иначе — листаем дальше
-                  _controller.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                   );
                 }
               },
-              child: Text(_currentIndex == contents.length - 1 ? "Get Started" : "Next"),
+              child: Text(
+                _currentIndex == contents.length - 1 ? "Get Started" : "Next",
+              ),
             ),
           ),
         ],
