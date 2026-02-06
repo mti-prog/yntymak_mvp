@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'sign_up_screen.dart'; // Импортируем экран регистрации
+import 'package:yntymak_mvp/screens/login_sign_up/sign_up_screen.dart';
+
+import '../main_screens/main/main_frame_screen.dart';
+ // Импортируем экран регистрации
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +27,23 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Входим в систему...')),
       );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainFrameScreen()),
+            (route) => false, // Это удаляет экран логина из памяти, чтобы нельзя было вернуться назад
+      );
     }
+  }
+  @override
+  void initState() {
+    super.initState();
+    // Слушаем изменения в полях, чтобы обновлять кнопку
+    _emailController.addListener(_updateButtonState);
+    _passwordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    setState(() {}); // Перерисовываем экран при каждом символе
   }
 
   @override
@@ -89,9 +108,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Кнопка входа
                 ElevatedButton(
-                  onPressed: _submit,
+                  // Если поля пустые, onPressed будет null (кнопка станет серой/неактивной)
+                  onPressed: (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty)
+                      ? _submit
+                      : null,
                   child: const Text('Login'),
                 ),
+
                 const SizedBox(height: 16),
 
                 // Переход на регистрацию

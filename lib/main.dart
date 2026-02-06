@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yntymak_mvp/screens/splash_screen.dart'; // Не забудь импортировать файл со сплэш-экраном
+import 'package:yntymak_mvp/screens/splash/splash_screen.dart'; // Не забудь импортировать файл со сплэш-экраном
 
 void main() {
   runApp(const MyApp());

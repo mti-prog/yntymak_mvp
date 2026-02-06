@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yntymak_mvp/core/app_theme.dart';
-import 'login_screen.dart';
-import '../models/onboarding_model.dart';
+import '../login_sign_up/login_screen.dart';
+import '../../models/onboarding_model.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
