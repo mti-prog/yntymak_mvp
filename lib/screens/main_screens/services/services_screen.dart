@@ -4,9 +4,13 @@ import '../../../models/service_model.dart';
 import '../../../widgets/service_card.dart';
 
 
-class ServicesScreen extends StatelessWidget {
+class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key});
 
+  @override
+  State<ServicesScreen> createState() => _ServicesScreenState();
+}
+class _ServicesScreenState extends State<ServicesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +60,7 @@ class ServicesScreen extends StatelessWidget {
                   return ServiceCard(
                     service: dummyServices[index],
                     onFavoritePressed: () {
-                      // Тут будет твой setState для лайка
+                      dummyServices[index].isFavorite = !dummyServices[index].isFavorite;
                     },
                   );
                 },

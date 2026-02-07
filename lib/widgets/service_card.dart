@@ -58,11 +58,13 @@ class ServiceCard extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: onFavoritePressed,
-                      child: Icon(
-                        service.isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: service.isFavorite ? Colors.red : Colors.grey,
-                        size: 26,
-                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          service.isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: service.isFavorite ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: onFavoritePressed, // Это вызывает функцию, которую мы передали из экрана
+                      )
                     ),
                   ],
                 ),

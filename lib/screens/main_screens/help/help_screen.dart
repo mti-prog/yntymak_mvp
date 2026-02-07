@@ -62,12 +62,12 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.only(top: 8),
-                itemCount: dummyServices.length,
+                itemCount: dummyHelps.length,
                 itemBuilder: (context, index) {
                   return HelpCard(
-                    service: dummyServices[index],
+                    service: dummyHelps[index],
                     onFavoritePressed: () {
-                      // Тут будет твой setState для лайка
+                      dummyHelps[index].isFavorite = !dummyHelps[index].isFavorite;
                     },
                   );
                 },
@@ -80,7 +80,7 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
   }
 }
 
-List<ServiceItem> dummyServices = [
+List<ServiceItem> dummyHelps = [
   ServiceItem(
     id: '1',
     userName: 'Адилет Саматов',

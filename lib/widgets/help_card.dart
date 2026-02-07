@@ -56,11 +56,13 @@ class HelpCard extends StatelessWidget {
                     // Кнопка избранного
                     GestureDetector(
                       onTap: onFavoritePressed,
-                      child: Icon(
-                        service.isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: service.isFavorite ? Colors.red : Colors.grey,
-                        size: 24,
-                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          service.isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: service.isFavorite ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: onFavoritePressed, // Это вызывает функцию, которую мы передали из экрана
+                      )
                     ),
                   ],
                 ),
