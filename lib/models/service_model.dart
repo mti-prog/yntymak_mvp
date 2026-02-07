@@ -8,6 +8,7 @@ class ServiceItem {
   final String phoneNumber;
   final bool isPaid;       // Paid или Free на макете
   final ServiceType type;
+  bool isFavorite;
 
   ServiceItem({
     required this.id,
@@ -17,5 +18,6 @@ class ServiceItem {
     required this.phoneNumber,
     required this.isPaid,
     required this.type,
+    this.isFavorite = false,
   });
 }

@@ -21,7 +21,7 @@ class _MainFrameScreenState extends State<MainFrameScreen> {
   // 3. Список самих виджетов-экранов. Порядок важен!
   final List<Widget> _pages = [
     const ServicesScreen(),  // индекс 0
-    const HelpScreen(),      // индекс 1
+    const HelpRequestsScreen(),      // индекс 1
     const FavoritesScreen(), // индекс 2
     const ProfileScreen(),   // индекс 3
   ];
