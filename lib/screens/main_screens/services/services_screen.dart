@@ -60,7 +60,9 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   return ServiceCard(
                     service: dummyServices[index],
                     onFavoritePressed: () {
-                      dummyServices[index].isFavorite = !dummyServices[index].isFavorite;
+                      setState(() {
+                        dummyServices[index].isFavorite = !dummyServices[index].isFavorite;
+                      });
                     },
                   );
                 },

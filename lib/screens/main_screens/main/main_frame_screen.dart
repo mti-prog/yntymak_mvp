@@ -15,33 +15,28 @@ class MainFrameScreen extends StatefulWidget {
 }
 
 class _MainFrameScreenState extends State<MainFrameScreen> {
-  // 2. Переменная, которая хранит номер текущей вкладки (0, 1, 2 или 3)
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
 
-  // 3. Список самих виджетов-экранов. Порядок важен!
-  final List<Widget> _pages = [
-    const ServicesScreen(),  // индекс 0
-    const HelpRequestsScreen(),      // индекс 1
-    const FavoritesScreen(), // индекс 2
-    const ProfileScreen(),   // индекс 3
-  ];
-
+// Вместо списка виджетов лучше возвращать виджет через функцию в body
+// Это гарантирует, что при каждом setState в MainScreen, текущая страница будет перерисована
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 4. IndexedStack показывает экран из списка _pages под номером _selectedIndex
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack( // IndexedStack сохраняет состояние скролла, но требует обновления
+        index: _currentIndex,
+        children: const [
 
-      // 5. Сама панель навигации внизу
+          ServicesScreen(),
+          HelpRequestsScreen(),
+          FavoritesScreen(),
+          ProfileScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex, // Подсвечивает нужную иконку
+        currentIndex: _currentIndex,
         onTap: (index) {
-          // Когда ты тапаешь, мы меняем индекс и экран переключается
           setState(() {
-            _selectedIndex = index;
+            _currentIndex = index;
           });
         },
         type: BottomNavigationBarType.fixed,

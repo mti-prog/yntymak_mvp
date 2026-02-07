@@ -67,7 +67,9 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
                   return HelpCard(
                     service: dummyHelps[index],
                     onFavoritePressed: () {
-                      dummyHelps[index].isFavorite = !dummyHelps[index].isFavorite;
+                      setState(() {
+                        dummyHelps[index].isFavorite = !dummyHelps[index].isFavorite;
+                      });
                     },
                   );
                 },
