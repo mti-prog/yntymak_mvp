@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yntymak_mvp/screens/main_screens/help/help_screen.dart';
-
-import '../../../models/service_model.dart';
 import '../../../widgets/help_card.dart';
 import '../../../widgets/service_card.dart';
 import '../services/services_screen.dart';
-
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -17,60 +14,43 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF1B334B);
-    const backgroundColor = Color(0xFFE8F3F1);
+    // 1. Фильтруем услуги из первого списка
+    final favServices = dummyServices.where((s) => s.isFavorite).toList();
 
-    // 1. Фильтруем избранные услуги (Offers)
-    final favoriteServices = dummyServices
-        .where((item) => item.isFavorite && item.type == ServiceType.offer)
-        .toList();
-
-    // 2. Фильтруем избранные запросы (Requests)
-    final favoriteHelp = dummyHelps
-        .where((item) => item.isFavorite && item.type == ServiceType.request)
-        .toList();
+    // 2. Фильтруем запросы помощи из ВТОРОГО списка (dummyHelps)
+    // ВАЖНО: убедись, что dummyHelps импортирован в этот файл
+    final favHelp = dummyHelps.where((h) => h.isFavorite).toList();
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: const Color(0xFFE8F3F1),
       body: SafeArea(
-        child: Column(
+        child: ListView(
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                'Favourites',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primaryColor),
-              ),
-            ),
+            _buildMainHeader("Favourites"),
 
-            if (favoriteServices.isEmpty && favoriteHelp.isEmpty)
-              const Expanded(child: Center(child: Text('Здесь пока пусто')))
-            else
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  children: [
-                    // СЕКЦИЯ: ИЗБРАННЫЕ УСЛУГИ
-                    if (favoriteServices.isNotEmpty) ...[
-                      _buildSectionHeader('Favorite Services'),
-                      ...favoriteServices.map((item) => ServiceCard(
-                        service: item,
-                        onFavoritePressed: () => setState(() => item.isFavorite = false),
-                      )),
-                    ],
+            // Секция Услуг
+            if (favServices.isNotEmpty) ...[
+              _buildMainHeader("Favorite Services"),
+              ...favServices.map((s) => ServiceCard(
+                service: s,
+                onFavoritePressed: () => setState(() => s.isFavorite = false),
+              )),
+            ],
 
-                    const SizedBox(height: 20),
+            // Секция Помощи (теперь берем из правильного списка)
+            if (favHelp.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              _buildMainHeader("Favorite Help Requests"),
+              ...favHelp.map((h) => HelpCard(
+                service: h,
+                onFavoritePressed: () => setState(() => h.isFavorite = false),
+              )),
+            ],
 
-                    // СЕКЦИЯ: ИЗБРАННЫЕ ЗАПРОСЫ
-                    if (favoriteHelp.isNotEmpty) ...[
-                      _buildSectionHeader('Favorite Help Requests'),
-                      ...favoriteHelp.map((item) => HelpCard(
-                        service: item,
-                        onFavoritePressed: () => setState(() => item.isFavorite = false),
-                      )),
-                    ],
-                  ],
-                ),
+            if (favServices.isEmpty && favHelp.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 100),
+                child: Center(child: Text("Здесь пока пусто")),
               ),
           ],
         ),
@@ -78,8 +58,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // Вспомогательный виджет для заголовка секции
-  Widget _buildSectionHeader(String title) {
+  // Метод переехал ВНУТРЬ класса _FavoritesScreenState
+  Widget _buildMainHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
       child: Text(

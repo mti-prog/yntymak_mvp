@@ -15,28 +15,18 @@ class MainFrameScreen extends StatefulWidget {
 }
 
 class _MainFrameScreenState extends State<MainFrameScreen> {
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
 
-// Вместо списка виджетов лучше возвращать виджет через функцию в body
-// Это гарантирует, что при каждом setState в MainScreen, текущая страница будет перерисована
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack( // IndexedStack сохраняет состояние скролла, но требует обновления
-        index: _currentIndex,
-        children: const [
-
-          ServicesScreen(),
-          HelpRequestsScreen(),
-          FavoritesScreen(),
-          ProfileScreen(),
-        ],
-      ),
+      // Вместо body: _pages[_selectedIndex]
+      body: _buildPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
-            _currentIndex = index;
+            _selectedIndex = index;
           });
         },
         type: BottomNavigationBarType.fixed,
@@ -50,5 +40,16 @@ class _MainFrameScreenState extends State<MainFrameScreen> {
         ],
       ),
     );
+  }
+  // Эта функция заставляет экран "проснуться" при переключении
+  Widget _buildPage(int index) {
+    switch (index) {// Каждый раз создаем свежий экран
+      case 0: return const ServicesScreen();
+      case 1: return const HelpRequestsScreen();
+      case 2: return const FavoritesScreen();
+      case 3: return const ProfileScreen();
+
+      default: return const ServicesScreen();
+    }
   }
 }
