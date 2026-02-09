@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:yntymak_mvp/core/app_theme.dart';
+import '../../core/app_theme.dart';
 import '../login_sign_up/login_screen.dart';
 import '../../models/onboarding_model.dart';
 
@@ -18,6 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.lightGreenBackGround,
       body: Column(
         children: [
           Expanded(
@@ -42,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: Theme.of(context).textTheme.displayLarge
                             ?.copyWith(
                               fontSize: 28,
-                              color: AppTheme.primaryDark,
+                              color: AppTheme.dark,
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -72,23 +73,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Padding(
             padding: const EdgeInsets.all(40.0),
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.baseGreenBackGround
+              ),
               // Внутри метода onPressed кнопки на последнем слайде:
               onPressed: () async {
-                // Сохраняем, что онбординг пройден
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('showOnboarding', false);
-
-                // Переходим на логин
-                if (mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
+                if (_currentIndex < contents.length - 1) {
+                  // Если страница НЕ последняя, просто листаем вперед
+                  _controller.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
                   );
+                } else {
+                  // Если страница ПОСЛЕДНЯЯ, сохраняем настройки и выходим
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('showOnboarding', false);
+
+                  if (mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  }
                 }
               },
               child: Text(
+                style: TextStyle(color: AppTheme.baseGreen),
                 _currentIndex == contents.length - 1 ? "Get Started" : "Next",
               ),
             ),
@@ -107,8 +119,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: _currentIndex == index
-            ? Theme.of(context).primaryColor
-            : Colors.grey.shade300,
+            ? AppTheme.baseGreen
+            : AppTheme.gray,
       ),
     );
   }

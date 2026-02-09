@@ -1,29 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../../models/service_model.dart';
+import 'package:provider/provider.dart';
+import '../../../core/app_theme.dart';
+import '../../../providers/service_provider/service_provider.dart';
 import '../../../widgets/help_card.dart';
 
 
-class HelpRequestsScreen extends StatefulWidget {
+class HelpRequestsScreen extends StatelessWidget {
   const HelpRequestsScreen({super.key});
 
   @override
-  State<HelpRequestsScreen> createState() => _HelpRequestsScreenState();
-}
-
-class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
-  @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF1B334B);
-
-    // Фильтруем данные из твоего dummyServices
-    // final helpRequests = dummyServices.where((s) => s.type == ServiceType.request).toList();
+    // Получаем список запросов из провайдера
+    final helpRequests = context.watch<ServiceProvider>().requests;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F3F1),
+      backgroundColor: AppTheme.lightBlueBackground,
       body: SafeArea(
         child: Column(
           children: [
-            // Заголовок
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 8, 25, 8),
               child: Row(
@@ -34,7 +28,7 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: primaryColor,
+                      color: AppTheme.dark,
                     ),
                   ),
                 ],
@@ -45,31 +39,28 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.lightGreenBackGround,
                 borderRadius: BorderRadius.circular(15),
               ),
               child: const TextField(
                 decoration: InputDecoration(
                   hintText: 'Search for a help requests...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, color: AppTheme.gray),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 15),
                 ),
               ),
             ),
-
-            // Список
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.only(top: 8),
-                itemCount: dummyHelps.length,
+                itemCount: helpRequests.length,
                 itemBuilder: (context, index) {
+                  final item = helpRequests[index];
                   return HelpCard(
-                    service: dummyHelps[index],
+                    service: item,
                     onFavoritePressed: () {
-                      setState(() {
-                        dummyHelps[index].isFavorite = !dummyHelps[index].isFavorite;
-                      });
+                      // Вызываем метод через read
+                      context.read<ServiceProvider>().toggleFavorite(item.id);
                     },
                   );
                 },
@@ -81,70 +72,3 @@ class _HelpRequestsScreenState extends State<HelpRequestsScreen> {
     );
   }
 }
-
-List<ServiceItem> dummyHelps = [
-  ServiceItem(
-    id: '1',
-    userName: 'Адилет Саматов',
-    userAvatar: 'https://i.pravatar.cc/150?img=1',
-    title:
-        'Ремонт смартфонов и ноутбуков. Замена экранов, батарей. Быстро и с гарантией.',
-    phoneNumber: '+996700123456',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '2',
-    userName: 'Айсулуу Маратова',
-    userAvatar: 'https://i.pravatar.cc/150?img=5',
-    title: 'Уроки английского языка для начинающих. Первое занятие бесплатно!',
-    phoneNumber: '+996555112233',
-    isPaid: false,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-];

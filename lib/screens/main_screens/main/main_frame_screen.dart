@@ -1,6 +1,7 @@
 // 1. Импортируем все наши 4 экрана
 import 'package:flutter/material.dart';
 
+import '../../../core/app_theme.dart';
 import '../favorites/favorites_screen.dart';
 import '../help/help_screen.dart';
 import '../profile/profile_screen.dart';
@@ -23,6 +24,7 @@ class _MainFrameScreenState extends State<MainFrameScreen> {
       // Вместо body: _pages[_selectedIndex]
       body: _buildPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppTheme.lightGreenBackGround,
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
@@ -30,8 +32,8 @@ class _MainFrameScreenState extends State<MainFrameScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF1B334B), // Твой темно-синий
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: AppTheme.baseGreen, // Твой темно-синий
+        unselectedItemColor: AppTheme.gray,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Services'),
           BottomNavigationBarItem(icon: Icon(Icons.help_outline), label: 'Help'),
@@ -44,12 +46,12 @@ class _MainFrameScreenState extends State<MainFrameScreen> {
   // Эта функция заставляет экран "проснуться" при переключении
   Widget _buildPage(int index) {
     switch (index) {// Каждый раз создаем свежий экран
-      case 0: return const ServicesScreen();
+      case 0: return const ServiceScreen();
       case 1: return const HelpRequestsScreen();
       case 2: return const FavoritesScreen();
       case 3: return const ProfileScreen();
 
-      default: return const ServicesScreen();
+      default: return const ServiceScreen();
     }
   }
 }

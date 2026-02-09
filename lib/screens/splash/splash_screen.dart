@@ -1,7 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:yntymak_mvp/core/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/app_theme.dart';
 import '../board/onboarding_screen.dart';
+import '../login_sign_up/login_screen.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,26 +16,55 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Логика перехода через 3 секунды
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        // Используем pushReplacement, чтобы нельзя было вернуться назад
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        );
-      }
-    });
+    _navigateToNext();
+  }
+
+  void _navigateToNext() async {
+    // 1. Ждем 2-3 секунды для красоты
+    await Future.delayed(const Duration(seconds: 3));
+
+    // 2. Проверяем настройки
+    final prefs = await SharedPreferences.getInstance();
+    final bool showOnboarding = prefs.getBool('showOnboarding') ?? true;
+
+    if (!mounted) return;
+
+    // 3. Переходим на нужный экран
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => showOnboarding
+            ? const OnboardingScreen()
+            : const LoginScreen(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppTheme.bgLight, // Твой цвет из задания
+    return Scaffold(
+      backgroundColor: AppTheme.baseGreenBackGround, // Твой фирменный цвет
       body: Center(
-        child: Image(
-          image: AssetImage('assets/images/logo.jpg'),
-          width: 150, // Настрой размер под свой логотип
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Твой логотип или иконк
+            Image.asset(
+              'assets/images/logo.png', // Укажи здесь точный путь к файлу
+              width: 150, // Настрой размер под себя
+              height: 150,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "YNTYMAK",
+              style: TextStyle(
+                color: AppTheme.dark,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 5,
+              ),
+            ),
+          ],
         ),
       ),
     );

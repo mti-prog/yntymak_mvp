@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 class AppTheme {
-  static const Color primaryDark = Color(0xFF1B3344);
-  static const Color bgLight = Color(0xFFF7FFF7);
-  static const Color accentTeal = Color(0xFFD6EAE7);
-  static const Color grayText = Color(0xFF7D7D7D);
+  static const Color dark = Color(0xFF033059);
+
+  static const Color baseGreenBackGround = Color(0xFFEEFDEC);
+  static const Color baseGreen = Color(0xFF699D91);
+  static const Color lightBlueBackground = Color(0xFFDBE9F0);
+  static const Color lightGreenBackGround = Color(0xFFF8FDF4);
+  static const Color gray = Color(0xFF706E70);
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: bgLight,
+      scaffoldBackgroundColor: baseGreenBackGround,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryDark,
-        primary: primaryDark,
+        seedColor: dark,
+        primary: dark,
       ),
 
       // Настройка текстовых полей (Input) как на макетах Login/Sign Up
@@ -27,14 +30,14 @@ class AppTheme {
           borderRadius: BorderRadius.circular(30),
           borderSide: const BorderSide(color: Colors.black12, width: 1),
         ),
-        hintStyle: const TextStyle(color: grayText, fontSize: 14),
-        prefixIconColor: grayText,
+        hintStyle: const TextStyle(color: gray, fontSize: 14),
+        prefixIconColor: gray,
       ),
 
       // Тема для кнопок
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark,
+          backgroundColor: dark,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 56), // Кнопки на всю ширину
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -45,8 +48,8 @@ class AppTheme {
       // Настройка BottomNavigationBar (нижнее меню)
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
-        selectedItemColor: primaryDark,
-        unselectedItemColor: grayText,
+        selectedItemColor: dark,
+        unselectedItemColor: gray,
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: true,
         showUnselectedLabels: true,

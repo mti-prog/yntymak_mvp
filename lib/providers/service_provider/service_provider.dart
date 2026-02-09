@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+import '../../models/service_model.dart';
+
+class ServiceProvider extends ChangeNotifier {
+  // Объединяем все данные в один список
+  final List<ServiceItem> _services = [
+    // Твои dummy-данные из ServiceScreen
+    ServiceItem(
+      id: '1',
+      userName: 'Адилет Саматов',
+      userAvatar: 'https://i.pravatar.cc/150?img=1',
+      title: 'Ремонт смартфонов и ноутбуков...',
+      phoneNumber: '+996700123456',
+      isPaid: true,
+      type: ServiceType.offer,
+    ),
+    // Твои dummy-данные из HelpScreen
+    ServiceItem(
+      id: 'h1',
+      userName: 'Айсулуу Маратова',
+      userAvatar: 'https://i.pravatar.cc/150?img=5',
+      title: 'Нужна помощь с перевозкой вещей...',
+      phoneNumber: '+996555112233',
+      isPaid: false,
+      type: ServiceType.request, // Это запрос помощи
+    ),
+    // ... добавь остальные элементы сюда
+  ];
+
+  // Геттер для получения всех услуг
+  List<ServiceItem> get services => _services;
+
+  // Геттеры для фильтрации
+  List<ServiceItem> get offers => _services.where((s) => s.type == ServiceType.offer).toList();
+  List<ServiceItem> get requests => _services.where((s) => s.type == ServiceType.request).toList();
+  List<ServiceItem> get favorites => _services.where((s) => s.isFavorite).toList();
+
+  // Метод переключения избранного
+  void toggleFavorite(String id) {
+    final index = _services.indexWhere((item) => item.id == id);
+    if (index != -1) {
+      _services[index].isFavorite = !_services[index].isFavorite;
+      notifyListeners(); // ГЛАВНОЕ: уведомляем UI об изменениях
+    }
+  }
+}

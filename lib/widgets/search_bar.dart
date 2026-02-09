@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_theme.dart';
+
 class MySearchBar extends StatelessWidget {
   const MySearchBar({super.key});
 
@@ -9,12 +11,12 @@ class MySearchBar extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.symmetric(horizontal: 15),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: AppTheme.baseGreenBackGround,
         borderRadius: BorderRadius.circular(15),
       ),
       child: const TextField(
         decoration: InputDecoration(
-          icon: Icon(Icons.search, color: Colors.grey),
+          icon: Icon(Icons.search, color: AppTheme.gray),
           hintText: "Search here...",
           border: InputBorder.none,
         ),

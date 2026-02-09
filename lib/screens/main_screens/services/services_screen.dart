@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-
-import '../../../models/service_model.dart';
+import '../../../core/app_theme.dart';
+import '../../../providers/service_provider/service_provider.dart';
 import '../../../widgets/service_card.dart';
+import 'package:provider/provider.dart';
 
+class ServiceScreen extends StatelessWidget {
+  const ServiceScreen({super.key});
 
-class ServicesScreen extends StatefulWidget {
-  const ServicesScreen({super.key});
-
-  @override
-  State<ServicesScreen> createState() => _ServicesScreenState();
-}
-class _ServicesScreenState extends State<ServicesScreen> {
   @override
   Widget build(BuildContext context) {
+    // 1. Подписываемся на изменения в провайдере
+    // Используем геттер .offers, который мы создали в ServiceProvider
+    final offers = context.watch<ServiceProvider>().offers;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFDDEEF3), // Фон как на макете
+      backgroundColor: AppTheme.lightBlueBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -27,42 +27,45 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   const Text(
                     'Services',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1B334B),
+                      color: AppTheme.dark,
                     ),
                   ),
                 ],
               ),
             ),
-            // Поиск
+
+            // Search Bar
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.lightGreenBackGround,
                 borderRadius: BorderRadius.circular(15),
               ),
               child: const TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search for a services ot people...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  hintText: 'Search for a services...',
+                  prefixIcon: Icon(Icons.search, color: AppTheme.gray),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 15),
                 ),
               ),
             ),
-            // Список
+
+            // Список услуг
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 8),
-                itemCount: dummyServices.length,
+              child: offers.isEmpty
+                  ? const Center(child: Text("No services available"))
+                  : ListView.builder(
+                itemCount: offers.length,
                 itemBuilder: (context, index) {
+                  final item = offers[index];
                   return ServiceCard(
-                    service: dummyServices[index],
+                    service: item,
                     onFavoritePressed: () {
-                      setState(() {
-                        dummyServices[index].isFavorite = !dummyServices[index].isFavorite;
-                      });
+                      // 2. Вызываем метод переключения избранного
+                      context.read<ServiceProvider>().toggleFavorite(item.id);
                     },
                   );
                 },
@@ -72,70 +75,4 @@ class _ServicesScreenState extends State<ServicesScreen> {
         ),
       ),
     );
-  }
-}
-List<ServiceItem> dummyServices = [
-  ServiceItem(
-    id: '1',
-    userName: 'Адилет Саматов',
-    userAvatar: 'https://i.pravatar.cc/150?img=1',
-    title: 'Ремонт смартфонов и ноутбуков. Замена экранов, батарей. Быстро и с гарантией.',
-    phoneNumber: '+996700123456',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '2',
-    userName: 'Айсулуу Маратова',
-    userAvatar: 'https://i.pravatar.cc/150?img=5',
-    title: 'Уроки английского языка для начинающих. Первое занятие бесплатно!',
-    phoneNumber: '+996555112233',
-    isPaid: false,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-  ServiceItem(
-    id: '3',
-    userName: 'Белек Темиров',
-    userAvatar: 'https://i.pravatar.cc/150?img=8',
-    title: 'Перевозка вещей на легковом авто (хэтчбек). Помогу с переездом.',
-    phoneNumber: '+996999000111',
-    isPaid: true,
-    type: ServiceType.offer,
-  ),
-];
+  }}

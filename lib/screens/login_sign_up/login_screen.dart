@@ -1,8 +1,10 @@
+import 'package:YntymakAppMVP/screens/login_sign_up/sign_up_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:yntymak_mvp/screens/login_sign_up/sign_up_screen.dart';
 
+
+import '../../core/app_theme.dart';
 import '../main_screens/main/main_frame_screen.dart';
- // Импортируем экран регистрации
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,133 +14,188 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Ключ для управления формой
-  final _formKey = GlobalKey<FormState>();
+  // 1. Контроллеры для сбора данных
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  // Контроллеры для получения текста из полей
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // 2. Состояние для скрытия пароля
+  bool _isPasswordHidden = true;
 
-  // Логика нажатия на кнопку входа
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      // Если валидация прошла успешно
-      print("Email: ${_emailController.text}");
+  // Функция для входа
+  void _handleLogin() {
+    final String phone = _phoneController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    if (phone.isEmpty || password.isEmpty) {
+      // Показываем ошибку, если поля пустые
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Входим в систему...')),
+        const SnackBar(content: Text("Please fill in all fields"),
+          backgroundColor: Colors.redAccent,
+        ),
       );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MainFrameScreen()),
-            (route) => false, // Это удаляет экран логина из памяти, чтобы нельзя было вернуться назад
-      );
+      return;
     }
-  }
-  @override
-  void initState() {
-    super.initState();
-    // Слушаем изменения в полях, чтобы обновлять кнопку
-    _emailController.addListener(_updateButtonState);
-    _passwordController.addListener(_updateButtonState);
+
+    // Если всё ок — идем дальше
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const MainFrameScreen()),
+    );
   }
 
-  void _updateButtonState() {
-    setState(() {}); // Перерисовываем экран при каждом символе
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    const primaryDark = Color(0xFF1B334B);
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FFF8),
       body: SafeArea(
-        // Оборачиваем в SingleChildScrollView, чтобы не было Overflow при открытии клавиатуры
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey, // Привязываем ключ
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 80),
-                Text(
-                  'Login',
-                  style: Theme.of(context).textTheme.displayLarge,
-                ),
-                const SizedBox(height: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 60),
+              const Text(
+                "Welcome\nBack!",
+                style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold, height: 1.1),
+              ),
+              const SizedBox(height: 60),
 
-                // Поле Email с валидацией
-                TextFormField(
-                  controller: _emailController,
+              // ПОЛЕ НОМЕРА
+              _buildInputContainer(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    hintText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (value) {
-                    if (value == null || !value.contains('@')) {
-                      return 'Введите корректный Email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
 
-                // Поле Пароль
-                TextFormField(
+                    hintText: "Phone Number",
+                    hintStyle: TextStyle(
+                      color: AppTheme.gray
+                    ),
+                    prefixIcon: Icon(Icons.person, color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ПОЛЕ ПАРОЛЯ С ГЛАЗКОМ
+              _buildInputContainer(
+                child: TextField(
                   controller: _passwordController,
-                  obscureText: true, // Скрывает символы
-                  decoration: const InputDecoration(
-                    hintText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                  obscureText: _isPasswordHidden, // Логика скрытия
+                  decoration: InputDecoration(
+                    hintText: "Password",
+                    hintStyle: TextStyle(
+                        color: AppTheme.gray
+                    ),
+                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordHidden = !_isPasswordHidden;
+                        });
+                      },
+                    ),
+                    border: InputBorder.none,
                   ),
-                  validator: (value) {
-                    if (value == null || value.length < 6) {
-                      return 'Пароль должен быть не менее 6 символов';
-                    }
-                    return null;
-                  },
                 ),
+              ),
 
-                // Кнопка Forgot Password
-                Align(
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text('Forgot Password?', style: TextStyle(color: Colors.grey)),
-                  )
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    );
+                  }, // Забыли пароль?
+                  child: const Text("Forgot Password?", style: TextStyle(color: Color(0xFF4A708B))),
                 ),
-                const SizedBox(height: 24),
+              ),
 
-                // Кнопка входа
-                ElevatedButton(
-                  // Если поля пустые, onPressed будет null (кнопка станет серой/неактивной)
-                  onPressed: (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty)
-                      ? _submit
-                      : null,
-                  child: const Text('Login'),
+              const SizedBox(height: 25),
+
+              // КНОПКА LOGIN
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryDark,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  onPressed: _handleLogin, // Вызов логики
+                  child: const Text("Login", style: TextStyle(color: Colors.white, fontSize: 22)),
                 ),
+              ),
 
-                const SizedBox(height: 16),
+              const SizedBox(height: 200),
 
-                // Переход на регистрацию
-                Row(
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
-                    TextButton(
-                      onPressed: () {
-                        // Обычный переход, чтобы можно было вернуться
+                    const Text(
+                      "Create An Account ",
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                    GestureDetector(
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const SignUpScreen()),
                         );
                       },
-                      child: const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(
+                          color: primaryDark,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          decoration: TextDecoration.underline,
+
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              // Sign Up Row...
+            ],
           ),
         ),
       ),
     );
   }
-}
+
+  // Общий контейнер для стиля полей как на фото
+  Widget _buildInputContainer({required Widget child}) {
+    return Container(
+
+      height: 65,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
+      ),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+      child: child,
+    );
+  }}

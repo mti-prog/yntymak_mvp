@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/app_theme.dart';
 import '../models/service_model.dart';
 
 class HelpCard extends StatelessWidget {
@@ -13,13 +14,12 @@ class HelpCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF1B334B);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.lightGreenBackGround,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
@@ -50,7 +50,7 @@ class HelpCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: primaryColor,
+                        color: AppTheme.dark,
                       ),
                     ),
                     // Кнопка избранного
@@ -59,7 +59,7 @@ class HelpCard extends StatelessWidget {
                       child: IconButton(
                         icon: Icon(
                           service.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: service.isFavorite ? Colors.red : Colors.grey,
+                          color: service.isFavorite ? AppTheme.baseGreen : AppTheme.gray,
                         ),
                         onPressed: onFavoritePressed, // Это вызывает функцию, которую мы передали из экрана
                       )
@@ -72,7 +72,7 @@ class HelpCard extends StatelessWidget {
                   service.title,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: AppTheme.dark,
                     height: 1.3,
                   ),
                   maxLines: 3,
@@ -87,20 +87,20 @@ class HelpCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: primaryColor,
+                        color: AppTheme.dark,
                       ),
                     ),
                     // Кнопка с номером
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: primaryColor,
+                        color: AppTheme.dark,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         service.phoneNumber,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppTheme.lightBlueBackground,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),

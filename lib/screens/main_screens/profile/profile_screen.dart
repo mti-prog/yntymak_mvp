@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../../core/app_theme.dart';
+import '../add_post_screen/add_post_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF1B334B); // Твой основной темно-синий цвет
-
     return Scaffold(
-      backgroundColor: const Color(0xFFEDF5F4), // Светло-бирюзовый фон из дизайна
+      backgroundColor: AppTheme.lightBlueBackground,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -17,7 +17,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text(
                 'Profile',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primaryColor),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
               ),
               const SizedBox(height: 30),
 
@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(color: AppTheme.lightGreenBackGround, shape: BoxShape.circle),
                   child: const CircleAvatar(
                     radius: 70,
                     backgroundImage: NetworkImage('https://i.pravatar.cc/300?u=oleg'),
@@ -37,12 +37,12 @@ class ProfileScreen extends StatelessWidget {
               // Имя и телефон
               const Text(
                 'Oleg Olegovich',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppTheme.dark),
               ),
               const SizedBox(height: 8),
               const Text(
                 '+996 706 785 768',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 16, color: AppTheme.gray),
               ),
               const SizedBox(height: 40),
 
@@ -51,14 +51,30 @@ class ProfileScreen extends StatelessWidget {
               _buildItemCard('Tutoring. I can help with math, science and school homework'),
               const SizedBox(height: 12),
               _buildItemCard('Pet sitting service & Dog walking.'),
-              _buildAddButton(primaryColor),
+              // КНОПКА ДЛЯ УСЛУГ
+              _buildAddButton(AppTheme.dark, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddPostScreen(type: PostType.service),
+                  ),
+                );
+              }),
 
               const SizedBox(height: 30),
 
               // Секция Help Requests
               _buildSectionHeader('Help Requests'),
               _buildItemCard('I need help setting up my computer and printer.'),
-              _buildAddButton(primaryColor),
+              // КНОПКА ДЛЯ ПОМОЩИ
+              _buildAddButton(AppTheme.dark, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddPostScreen(type: PostType.help),
+                  ),
+                );
+              }),
 
               const SizedBox(height: 40),
             ],
@@ -68,7 +84,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Заголовок секции
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -76,21 +91,21 @@ class ProfileScreen extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: Text(
           title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1B334B)),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.dark),
         ),
       ),
     );
   }
 
-  // Карточка услуги/запроса
   Widget _buildItemCard(String text) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 10), // Добавил отступ между карточками
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white, // Сделал карточки белыми как на скрине
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
         ],
       ),
       child: Row(
@@ -98,24 +113,24 @@ class ProfileScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: const TextStyle(fontSize: 14, color: AppTheme.dark),
             ),
           ),
           const SizedBox(width: 10),
-          Icon(Icons.delete_outline, color: Colors.grey[400]),
+          const Icon(Icons.delete_outline, color: Colors.grey),
         ],
       ),
     );
   }
 
-  // Кнопка + Add
-  Widget _buildAddButton(Color color) {
+  // ОБНОВЛЕННАЯ КНОПКА С ПАРАМЕТРОМ onTap
+  Widget _buildAddButton(Color color, VoidCallback onTap) {
     return Align(
       alignment: Alignment.centerRight,
       child: Padding(
         padding: const EdgeInsets.only(top: 12),
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: onTap,
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             foregroundColor: Colors.white,
