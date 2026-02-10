@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../models/service_model.dart';
+import '../screens/main_screens/detail_screen/service_details_screen.dart';
 
 class ServiceCard extends StatelessWidget {
   final ServiceItem service;
@@ -14,103 +15,108 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.lightGreenBackGround,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            // Используем современный withValues вместо withOpacity
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    // 1. Добавляем GestureDetector для клика по всей карточке
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServiceDetailsScreen(service: service),
           ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Аватар слева
-          CircleAvatar(
-            radius: 35,
-            backgroundImage: NetworkImage(service.userAvatar),
-          ),
-          const SizedBox(width: 16),
-          // Основной контент
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Имя и Сердечко
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      service.userName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.dark,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.lightGreenBackGround,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 2. Добавляем Hero для анимации аватара
+            Hero(
+              tag: 'image_${service.id}', // Тег совпадает с деталями
+              child: CircleAvatar(
+                radius: 35,
+                backgroundImage: NetworkImage(service.userAvatar),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        service.userName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.dark,
+                        ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: onFavoritePressed,
-                      child: IconButton(
+                      // Кнопка избранного
+                      IconButton(
                         icon: Icon(
                           service.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: service.isFavorite ? AppTheme.baseGreen : AppTheme.gray,
+                          color: service.isFavorite ? AppTheme.baseGreen : AppTheme.baseGreen,
                         ),
-                        onPressed: onFavoritePressed, // Это вызывает функцию, которую мы передали из экрана
-                      )
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                // Описание (Title)
-                Text(
-                  service.title,
-                  style: const TextStyle(fontSize: 13, color: AppTheme.dark),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                // Цена и Номер телефона
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      service.isPaid ? 'Paid' : 'Free',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.dark,
+                        onPressed: onFavoritePressed,
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.dark,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        service.phoneNumber,
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    service.title,
+                    style: const TextStyle(fontSize: 13, color: AppTheme.dark),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        service.isPaid ? 'Paid' : 'Free',
                         style: const TextStyle(
-                          color: AppTheme.lightBlueBackground,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.dark,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.dark,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          service.phoneNumber,
+                          style: const TextStyle(
+                            color: AppTheme.lightBlueBackground,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
