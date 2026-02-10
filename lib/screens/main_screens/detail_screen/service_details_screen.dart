@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/app_theme.dart';
 import '../../../models/service_model.dart';
 import '../../../providers/service_provider/service_provider.dart';
@@ -147,7 +148,8 @@ class ServiceDetailsScreen extends StatelessWidget {
         ),
         child: ElevatedButton.icon(
           onPressed: () {
-            // Здесь будет логика звонка: launchUrl(Uri.parse('tel:${service.phoneNumber}'));
+            // В bottomNavigationBar экрана деталей:
+            _makePhoneCall(service.phoneNumber);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.dark,
@@ -162,5 +164,18 @@ class ServiceDetailsScreen extends StatelessWidget {
         ),
       ),
     );
+
+  }
+}
+Future<void> _makePhoneCall(String phoneNumber) async {
+  final Uri launchUri = Uri(
+    scheme: 'tel',
+    path: phoneNumber,
+  );
+  if (await canLaunchUrl(launchUri)) {
+    await launchUrl(launchUri);
+  } else {
+    // Если запуск не удался (например, на симуляторе без звонилки)
+    debugPrint('Could not launch $launchUri');
   }
 }
