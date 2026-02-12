@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 
 import '../../core/app_theme.dart';
+import '../../core/storage_service/storage_service.dart';
 import '../main_screens/main/main_frame_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordHidden = true;
 
   // Функция для входа
-  void _handleLogin() {
+  void _handleLogin() async{
     final String phone = _phoneController.text.trim();
     final String password = _passwordController.text.trim();
 
@@ -37,10 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     // Если всё ок — идем дальше
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainFrameScreen()),
-    );
+    await StorageService.setLoggedIn(true); // Сохраняем вход
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainFrameScreen()));
   }
 
   @override

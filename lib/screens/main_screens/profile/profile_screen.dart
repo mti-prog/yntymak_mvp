@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_theme.dart';
+import '../../../core/storage_service/storage_service.dart';
+import '../../login_sign_up/login_screen.dart';
 import '../add_post_screen/add_post_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -15,9 +17,18 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              const Text(
-                'Profile',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Profile',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
+                  ),
+                  IconButton(
+                    onPressed: () => _showLogoutDialog(context),
+                    icon: const Icon(Icons.logout, color: Colors.redAccent),
+                  ),
+                ],
               ),
               const SizedBox(height: 30),
 
@@ -80,6 +91,34 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to exit?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              await StorageService.clearAll(); // Очищаем данные в SharedPreferences
+              if (!context.mounted) return;
+              // Переходим на логин и удаляем все предыдущие экраны из памяти
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+              );
+            },
+            child: const Text("Exit", style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

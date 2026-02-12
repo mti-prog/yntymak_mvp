@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/storage_service/storage_service.dart';
 import '../../models/service_model.dart';
 
 class ServiceProvider extends ChangeNotifier {
@@ -28,19 +29,43 @@ class ServiceProvider extends ChangeNotifier {
   ];
 
   // Геттер для получения всех услуг
-  List<ServiceItem> get services => _services;
+  // Добавляем конструктор
+  ServiceProvider() {
+    _loadFavorites();
+  }
 
-  // Геттеры для фильтрации
+  List<ServiceItem> get services => _services;
   List<ServiceItem> get offers => _services.where((s) => s.type == ServiceType.offer).toList();
   List<ServiceItem> get requests => _services.where((s) => s.type == ServiceType.request).toList();
   List<ServiceItem> get favorites => _services.where((s) => s.isFavorite).toList();
 
-  // Метод переключения избранного
-  void toggleFavorite(String id) {
+  // Загрузка избранного при старте
+  Future<void> _loadFavorites() async {
+    final savedIds = await StorageService.getFavorites();
+    if (savedIds.isNotEmpty) {
+      for (var service in _services) {
+        if (savedIds.contains(service.id)) {
+          service.isFavorite = true;
+        }
+      }
+      notifyListeners();
+    }
+  }
+
+  // Обновленный метод переключения
+  void toggleFavorite(String id) async {
     final index = _services.indexWhere((item) => item.id == id);
     if (index != -1) {
       _services[index].isFavorite = !_services[index].isFavorite;
-      notifyListeners(); // ГЛАВНОЕ: уведомляем UI об изменениях
+
+      // Сразу сохраняем текущее состояние в SharedPreferences
+      final favoriteIds = _services
+          .where((s) => s.isFavorite)
+          .map((s) => s.id)
+          .toList();
+      await StorageService.saveFavorites(favoriteIds);
+
+      notifyListeners();
     }
   }
 }
