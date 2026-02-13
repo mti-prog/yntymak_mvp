@@ -10,8 +10,8 @@ class HelpRequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Получаем список запросов из провайдера
-    final helpRequests = context.watch<ServiceProvider>().requests;
+    final provider = context.watch<ServiceProvider>();
+    final helpRequests = provider.requests;
 
     return Scaffold(
       backgroundColor: AppTheme.lightBlueBackground,
@@ -21,52 +21,64 @@ class HelpRequestsScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 8, 25, 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Help Requests',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.dark,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
                   ),
                 ],
               ),
             ),
 
             // Search Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.lightGreenBackGround,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for a help requests...',
-                  prefixIcon: Icon(Icons.search, color: AppTheme.gray),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 15),
+            _buildSearchBar('Search for a help requests...'),
+
+            Expanded(
+              child: provider.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppTheme.baseGreen))
+                  : RefreshIndicator(
+                onRefresh: () => provider.loadData(),
+                child: helpRequests.isEmpty
+                    ? ListView(
+                  children: const [
+                    SizedBox(height: 100),
+                    Center(child: Text("No help requests available")),
+                  ],
+                )
+                    : ListView.builder(
+                  itemCount: helpRequests.length,
+                  itemBuilder: (context, index) {
+                    final item = helpRequests[index];
+                    return HelpCard(
+                      service: item,
+                      onFavoritePressed: () {
+                        context.read<ServiceProvider>().toggleFavorite(item.id);
+                      },
+                    );
+                  },
                 ),
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: helpRequests.length,
-                itemBuilder: (context, index) {
-                  final item = helpRequests[index];
-                  return HelpCard(
-                    service: item,
-                    onFavoritePressed: () {
-                      // Вызываем метод через read
-                      context.read<ServiceProvider>().toggleFavorite(item.id);
-                    },
-                  );
-                },
-              ),
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // В идеале вынести этот метод в отдельный файл виджетов, чтобы не дублировать
+  Widget _buildSearchBar(String hint) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.lightGreenBackGround,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: const Icon(Icons.search, color: AppTheme.gray),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
       ),
     );

@@ -9,9 +9,9 @@ class ServiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Подписываемся на изменения в провайдере
-    // Используем геттер .offers, который мы создали в ServiceProvider
-    final offers = context.watch<ServiceProvider>().offers;
+    // Подписываемся на провайдер
+    final provider = context.watch<ServiceProvider>();
+    final offers = provider.offers;
 
     return Scaffold(
       backgroundColor: AppTheme.lightBlueBackground,
@@ -22,57 +22,66 @@ class ServiceScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 8, 25, 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Services',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.dark,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
                   ),
                 ],
               ),
             ),
 
             // Search Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.lightGreenBackGround,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for a services...',
-                  prefixIcon: Icon(Icons.search, color: AppTheme.gray),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 15),
-                ),
-              ),
-            ),
+            _buildSearchBar('Search for a services...'),
 
-            // Список услуг
+            // Основная часть: либо крутилка, либо список
             Expanded(
-              child: offers.isEmpty
-                  ? const Center(child: Text("No services available"))
-                  : ListView.builder(
-                itemCount: offers.length,
-                itemBuilder: (context, index) {
-                  final item = offers[index];
-                  return ServiceCard(
-                    service: item,
-                    onFavoritePressed: () {
-                      // 2. Вызываем метод переключения избранного
-                      context.read<ServiceProvider>().toggleFavorite(item.id);
-                    },
-                  );
-                },
+              child: provider.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppTheme.baseGreen))
+                  : RefreshIndicator(
+                onRefresh: () => provider.loadData(), // Метод для обновления свайпом
+                child: offers.isEmpty
+                    ? ListView( // Используем ListView, чтобы работал RefreshIndicator даже в пустом списке
+                  children: const [
+                    SizedBox(height: 100),
+                    Center(child: Text("No services available")),
+                  ],
+                )
+                    : ListView.builder(
+                  itemCount: offers.length,
+                  itemBuilder: (context, index) {
+                    final item = offers[index];
+                    return ServiceCard(
+                      service: item,
+                      onFavoritePressed: () {
+                        context.read<ServiceProvider>().toggleFavorite(item.id);
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ],
         ),
       ),
     );
-  }}
+  }
+
+  Widget _buildSearchBar(String hint) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.lightGreenBackGround,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: const Icon(Icons.search, color: AppTheme.gray),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+        ),
+      ),
+    );
+  }
+}

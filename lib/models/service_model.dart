@@ -20,4 +20,21 @@ class ServiceItem {
     required this.type,
     this.isFavorite = false,
   });
+  factory ServiceItem.fromJson(Map<String, dynamic> json) {
+    return ServiceItem(
+      id: json['id']?.toString() ?? '',
+      userName: json['userName'] ?? 'Unknown',
+      userAvatar: json['userAvatar'] ?? '',
+      title: json['title'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      isPaid: json['isPaid'] ?? false,
+      // Превращаем строку в enum
+      type: json['type'] == 'request'
+          ? ServiceType.request
+          : ServiceType.offer,
+      // isFavorite обычно не приходит с сервера,
+      // а берется из локальной памяти (SharedPreferences)
+      isFavorite: false,
+    );
+  }
 }

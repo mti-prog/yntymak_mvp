@@ -1,45 +1,50 @@
 import 'package:flutter/material.dart';
+import '../../core/api/api_service.dart';
 import '../../core/storage_service/storage_service.dart';
 import '../../models/service_model.dart';
 
 class ServiceProvider extends ChangeNotifier {
-  // Объединяем все данные в один список
-  final List<ServiceItem> _services = [
-    // Твои dummy-данные из ServiceScreen
-    ServiceItem(
-      id: '1',
-      userName: 'Адилет Саматов',
-      userAvatar: 'https://i.pravatar.cc/150?img=1',
-      title: 'Ремонт смартфонов и ноутбуков...',
-      phoneNumber: '+996700123456',
-      isPaid: true,
-      type: ServiceType.offer,
-    ),
-    // Твои dummy-данные из HelpScreen
-    ServiceItem(
-      id: 'h1',
-      userName: 'Айсулуу Маратова',
-      userAvatar: 'https://i.pravatar.cc/150?img=5',
-      title: 'Нужна помощь с перевозкой вещей...',
-      phoneNumber: '+996555112233',
-      isPaid: false,
-      type: ServiceType.request, // Это запрос помощи
-    ),
-    // ... добавь остальные элементы сюда
-  ];
+  final ApiService _apiService = ApiService();
 
-  // Геттер для получения всех услуг
-  // Добавляем конструктор
+  // Основной список теперь пустой, данные придут из сети
+  List<ServiceItem> _services = [];
+  bool _isLoading = false;
+
+  // Конструктор: при создании провайдера сразу идем за данными
   ServiceProvider() {
-    _loadFavorites();
+    loadData();
   }
 
+  // Геттеры
   List<ServiceItem> get services => _services;
+  bool get isLoading => _isLoading;
+
   List<ServiceItem> get offers => _services.where((s) => s.type == ServiceType.offer).toList();
   List<ServiceItem> get requests => _services.where((s) => s.type == ServiceType.request).toList();
   List<ServiceItem> get favorites => _services.where((s) => s.isFavorite).toList();
 
-  // Загрузка избранного при старте
+  // Основной метод загрузки данных из сети
+  Future<void> loadData() async {
+    _isLoading = true;
+    notifyListeners(); // Показываем крутилку в UI
+
+    try {
+      // 1. Загружаем данные через ApiService
+      final fetchedData = await _apiService.fetchServices();
+      _services = fetchedData;
+
+      // 2. Сразу проверяем локальное хранилище и восстанавливаем "сердечки"
+      await _loadFavorites();
+    } catch (e) {
+      debugPrint("Error loading data: $e");
+      // Здесь можно добавить переменную с текстом ошибки для UI
+    } finally {
+      _isLoading = false;
+      notifyListeners(); // Скрываем крутилку
+    }
+  }
+
+  // Загрузка избранного из памяти и применение к текущему списку
   Future<void> _loadFavorites() async {
     final savedIds = await StorageService.getFavorites();
     if (savedIds.isNotEmpty) {
@@ -48,17 +53,17 @@ class ServiceProvider extends ChangeNotifier {
           service.isFavorite = true;
         }
       }
-      notifyListeners();
+      // notifyListeners() вызовется в блоке finally метода loadData
     }
   }
 
-  // Обновленный метод переключения
+  // Переключение избранного
   void toggleFavorite(String id) async {
     final index = _services.indexWhere((item) => item.id == id);
     if (index != -1) {
       _services[index].isFavorite = !_services[index].isFavorite;
 
-      // Сразу сохраняем текущее состояние в SharedPreferences
+      // Сохраняем в SharedPreferences
       final favoriteIds = _services
           .where((s) => s.isFavorite)
           .map((s) => s.id)
