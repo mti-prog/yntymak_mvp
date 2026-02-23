@@ -20,20 +20,24 @@ class ServiceProvider extends ChangeNotifier {
   List<ServiceItem> get services => _services;
   bool get isLoading => _isLoading;
 
-  List<ServiceItem> get offers => _services.where((s) => s.type == ServiceType.offer).toList();
-  List<ServiceItem> get requests => _services.where((s) => s.type == ServiceType.request).toList();
-  List<ServiceItem> get favorites => _services.where((s) => s.isFavorite).toList();
+  List<ServiceItem> get offers =>
+      _services.where((s) => s.type == ServiceType.offer).toList();
+  List<ServiceItem> get requests =>
+      _services.where((s) => s.type == ServiceType.request).toList();
+  List<ServiceItem> get favorites =>
+      _services.where((s) => s.isFavorite).toList();
 
   // Добавление нового поста локально
   void addPost(String title, PostType type) {
     final newItem = ServiceItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Временный уникальный ID
+      id: DateTime.now().millisecondsSinceEpoch
+          .toString(), // Временный уникальный ID
       userName: "Current User", // Имя по умолчанию
       userAvatar: "", // Пустая аватарка по умолчанию
       title: title,
       phoneNumber: "123-456-7890", // Номер телефона по умолчанию
       isPaid: false, // Бесплатно по умолчанию
-      type: type == PostType.offer ? ServiceType.offer : ServiceType.request,
+      type: type == PostType.service ? ServiceType.offer : ServiceType.request,
     );
 
     // Добавляем в начало списка
