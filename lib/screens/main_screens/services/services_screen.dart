@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/app_theme.dart';
 import '../../../providers/service_provider/service_provider.dart';
 import '../../../widgets/service_card.dart';
+import '../add_post_screen/add_post_screen.dart';
 import 'package:provider/provider.dart';
 
 class ServiceScreen extends StatelessWidget {
@@ -63,6 +64,18 @@ class ServiceScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddPostScreen(type: PostType.service),
+            ),
+          );
+        },
+        backgroundColor: AppTheme.baseGreen,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

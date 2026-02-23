@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/api/api_service.dart';
 import '../../core/storage_service/storage_service.dart';
 import '../../models/service_model.dart';
+import '../../screens/main_screens/add_post_screen/add_post_screen.dart';
 
 class ServiceProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -22,6 +23,23 @@ class ServiceProvider extends ChangeNotifier {
   List<ServiceItem> get offers => _services.where((s) => s.type == ServiceType.offer).toList();
   List<ServiceItem> get requests => _services.where((s) => s.type == ServiceType.request).toList();
   List<ServiceItem> get favorites => _services.where((s) => s.isFavorite).toList();
+
+  // Добавление нового поста локально
+  void addPost(String title, PostType type) {
+    final newItem = ServiceItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(), // Временный уникальный ID
+      userName: "Current User", // Имя по умолчанию
+      userAvatar: "", // Пустая аватарка по умолчанию
+      title: title,
+      phoneNumber: "123-456-7890", // Номер телефона по умолчанию
+      isPaid: false, // Бесплатно по умолчанию
+      type: type == PostType.offer ? ServiceType.offer : ServiceType.request,
+    );
+
+    // Добавляем в начало списка
+    _services.insert(0, newItem);
+    notifyListeners();
+  }
 
   // Основной метод загрузки данных из сети
   Future<void> loadData() async {

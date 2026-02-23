@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/service_provider/service_provider.dart';
 
 enum PostType { help, service }
 
@@ -92,8 +94,15 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     ),
                   ),
                   onPressed: () {
-                    // Логика публикации
-                    Navigator.pop(context);
+                    final text = _controller.text.trim();
+                    if (text.isNotEmpty) {
+                      context.read<ServiceProvider>().addPost(text, widget.type);
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter a description')),
+                      );
+                    }
                   },
                   child: const Text("Public",
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
