@@ -7,66 +7,89 @@ import '../../screens/main_screens/add_post_screen/add_post_screen.dart';
 class ServiceProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  // Основной список теперь пустой, данные придут из сети
   List<ServiceItem> _services = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
-  // Конструктор: при создании провайдера сразу идем за данными
   ServiceProvider() {
     loadData();
   }
 
-  // Геттеры
-  List<ServiceItem> get services => _services;
+  // ── Геттеры ──────────────────────────────────────────────────────────────
+
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
+
+  /// Все записи, отфильтрованные по текущему _searchQuery
+  List<ServiceItem> get services => _filtered(_services);
 
   List<ServiceItem> get offers =>
-      _services.where((s) => s.type == ServiceType.offer).toList();
+      _filtered(_services.where((s) => s.type == ServiceType.offer).toList());
+
   List<ServiceItem> get requests =>
-      _services.where((s) => s.type == ServiceType.request).toList();
+      _filtered(_services.where((s) => s.type == ServiceType.request).toList());
+
   List<ServiceItem> get favorites =>
       _services.where((s) => s.isFavorite).toList();
 
-  // Добавление нового поста локально
-  void addPost(String title, PostType type) {
-    final newItem = ServiceItem(
-      id: DateTime.now().millisecondsSinceEpoch
-          .toString(), // Временный уникальный ID
-      userName: "Current User", // Имя по умолчанию
-      userAvatar: "", // Пустая аватарка по умолчанию
-      title: title,
-      phoneNumber: "123-456-7890", // Номер телефона по умолчанию
-      isPaid: false, // Бесплатно по умолчанию
-      type: type == PostType.service ? ServiceType.offer : ServiceType.request,
-    );
+  // ── Поиск ────────────────────────────────────────────────────────────────
 
-    // Добавляем в начало списка
-    _services.insert(0, newItem);
+  /// Вызывается из TextField.onChanged — фильтрует список по title
+  void searchServices(String query) {
+    _searchQuery = query.trim().toLowerCase();
     notifyListeners();
   }
 
-  // Основной метод загрузки данных из сети
-  Future<void> loadData() async {
-    _isLoading = true;
-    notifyListeners(); // Показываем крутилку в UI
+  /// Применяет поисковый фильтр к произвольному списку
+  List<ServiceItem> _filtered(List<ServiceItem> source) {
+    if (_searchQuery.isEmpty) return source;
+    return source
+        .where((s) => s.title.toLowerCase().contains(_searchQuery))
+        .toList();
+  }
+
+  // ── Добавление поста ──────────────────────────────────────────────────────
+
+  /// Возвращает null при успехе, строку с ошибкой при неудаче.
+  Future<String?> addPost(String title, PostType type) async {
+    final newItem = ServiceItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userName: 'Current User',
+      userAvatar: '',
+      title: title,
+      phoneNumber: '123-456-7890',
+      isPaid: false,
+      type: type == PostType.service ? ServiceType.offer : ServiceType.request,
+    );
 
     try {
-      // 1. Загружаем данные через ApiService
-      final fetchedData = await _apiService.fetchServices();
-      _services = fetchedData;
-
-      // 2. Сразу проверяем локальное хранилище и восстанавливаем "сердечки"
-      await _loadFavorites();
+      await _apiService.insertPost(newItem);
+      await loadData();
+      return null; // успех
     } catch (e) {
-      debugPrint("Error loading data: $e");
-      // Здесь можно добавить переменную с текстом ошибки для UI
-    } finally {
-      _isLoading = false;
-      notifyListeners(); // Скрываем крутилку
+      debugPrint('Error inserting post: $e');
+      return e.toString(); // возвращаем текст ошибки
     }
   }
 
-  // Загрузка избранного из памяти и применение к текущему списку
+  // ── Загрузка данных ───────────────────────────────────────────────────────
+
+  Future<void> loadData() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final fetchedData = await _apiService.fetchServices();
+      _services = fetchedData;
+      await _loadFavorites();
+    } catch (e) {
+      debugPrint('Error loading data: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> _loadFavorites() async {
     final savedIds = await StorageService.getFavorites();
     if (savedIds.isNotEmpty) {
@@ -75,17 +98,16 @@ class ServiceProvider extends ChangeNotifier {
           service.isFavorite = true;
         }
       }
-      // notifyListeners() вызовется в блоке finally метода loadData
     }
   }
 
-  // Переключение избранного
+  // ── Избранное ─────────────────────────────────────────────────────────────
+
   void toggleFavorite(String id) async {
     final index = _services.indexWhere((item) => item.id == id);
     if (index != -1) {
       _services[index].isFavorite = !_services[index].isFavorite;
 
-      // Сохраняем в SharedPreferences
       final favoriteIds = _services
           .where((s) => s.isFavorite)
           .map((s) => s.id)

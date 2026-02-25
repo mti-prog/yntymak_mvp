@@ -5,12 +5,16 @@ import '../../../widgets/service_card.dart';
 import '../add_post_screen/add_post_screen.dart';
 import 'package:provider/provider.dart';
 
-class ServiceScreen extends StatelessWidget {
+class ServiceScreen extends StatefulWidget {
   const ServiceScreen({super.key});
 
   @override
+  State<ServiceScreen> createState() => _ServiceScreenState();
+}
+
+class _ServiceScreenState extends State<ServiceScreen> {
+  @override
   Widget build(BuildContext context) {
-    // Подписываемся на провайдер
     final provider = context.watch<ServiceProvider>();
     final offers = provider.offers;
 
@@ -23,44 +27,54 @@ class ServiceScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 8, 25, 8),
               child: Row(
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     'Services',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.dark),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.dark,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Search Bar
-            _buildSearchBar('Search for a services...'),
+            // Search Bar — подключён к провайдеру
+            _buildSearchBar(context, 'Search for a services...'),
 
-            // Основная часть: либо крутилка, либо список
+            // Список или крутилка
             Expanded(
               child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.baseGreen))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.baseGreen,
+                      ),
+                    )
                   : RefreshIndicator(
-                onRefresh: () => provider.loadData(), // Метод для обновления свайпом
-                child: offers.isEmpty
-                    ? ListView( // Используем ListView, чтобы работал RefreshIndicator даже в пустом списке
-                  children: const [
-                    SizedBox(height: 100),
-                    Center(child: Text("No services available")),
-                  ],
-                )
-                    : ListView.builder(
-                  itemCount: offers.length,
-                  itemBuilder: (context, index) {
-                    final item = offers[index];
-                    return ServiceCard(
-                      service: item,
-                      onFavoritePressed: () {
-                        context.read<ServiceProvider>().toggleFavorite(item.id);
-                      },
-                    );
-                  },
-                ),
-              ),
+                      onRefresh: () => provider.loadData(),
+                      child: offers.isEmpty
+                          ? ListView(
+                              children: const [
+                                SizedBox(height: 100),
+                                Center(child: Text('No services available')),
+                              ],
+                            )
+                          : ListView.builder(
+                              itemCount: offers.length,
+                              itemBuilder: (context, index) {
+                                final item = offers[index];
+                                return ServiceCard(
+                                  service: item,
+                                  onFavoritePressed: () {
+                                    context
+                                        .read<ServiceProvider>()
+                                        .toggleFavorite(item.id);
+                                  },
+                                );
+                              },
+                            ),
+                    ),
             ),
           ],
         ),
@@ -80,7 +94,7 @@ class ServiceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar(String hint) {
+  Widget _buildSearchBar(BuildContext context, String hint) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
       decoration: BoxDecoration(
@@ -88,6 +102,8 @@ class ServiceScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextField(
+        onChanged: (query) =>
+            context.read<ServiceProvider>().searchServices(query),
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: const Icon(Icons.search, color: AppTheme.gray),

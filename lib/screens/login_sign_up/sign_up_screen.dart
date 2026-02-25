@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider/auth_provider.dart';
 import '../main_screens/main/main_frame_screen.dart';
-import 'login_screen.dart'; // Путь к твоему логину
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -11,21 +12,78 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isPasswordHidden = true;
   bool _isConfirmHidden = true;
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final pass = _passwordController.text.trim();
+    final confirmPass = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || pass.isEmpty || confirmPass.isEmpty) {
+      _showError('Please fill in all required fields');
+      return;
+    }
+    if (pass != confirmPass) {
+      _showError('Passwords do not match!');
+      return;
+    }
+    if (pass.length < 6) {
+      _showError('Password must be at least 6 characters');
+      return;
+    }
+
+    final error = await context.read<AuthProvider>().signUp(
+      email: email,
+      password: pass,
+      name: name,
+      phone: phone,
+    );
+
+    if (!mounted) return;
+    if (error != null) {
+      _showError(error);
+    } else {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainFrameScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
     const primaryDark = Color(0xFF1B334B);
-    const scaffoldBg = Color(0xFFF8FFF8);
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
-      // AppBar только для заголовка "Sign Up" сверху, как на фото
+      backgroundColor: const Color(0xFFF8FFF8),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -34,7 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               const SizedBox(height: 20),
               const Text(
-                "Create an\naccount",
+                'Create an\naccount',
                 style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.bold,
@@ -42,118 +100,103 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   height: 1.1,
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
-              // Поле Номера
+              // Name
               _buildInputBox(
-                controller: _phoneController,
-                hint: "Phone Number",
+                controller: _nameController,
+                hint: 'Your Name',
                 icon: Icons.person_outline,
               ),
               const SizedBox(height: 15),
 
-              // Поле Пароля
+              // Email
               _buildInputBox(
-                controller: _passwordController,
-                hint: "Password",
-                icon: Icons.lock_outline,
-                isPassword: true,
-                isHidden: _isPasswordHidden,
-                onToggle: () => setState(() => _isPasswordHidden = !_isPasswordHidden),
+                controller: _emailController,
+                hint: 'Email',
+                icon: Icons.email_outlined,
               ),
               const SizedBox(height: 15),
 
-              // Поле Подтверждения пароля
+              // Phone (опционально)
+              _buildInputBox(
+                controller: _phoneController,
+                hint: 'Phone Number (optional)',
+                icon: Icons.phone_outlined,
+              ),
+              const SizedBox(height: 15),
+
+              // Password
+              _buildInputBox(
+                controller: _passwordController,
+                hint: 'Password',
+                icon: Icons.lock_outline,
+                isPassword: true,
+                isHidden: _isPasswordHidden,
+                onToggle: () =>
+                    setState(() => _isPasswordHidden = !_isPasswordHidden),
+              ),
+              const SizedBox(height: 15),
+
+              // Confirm Password
               _buildInputBox(
                 controller: _confirmPasswordController,
-                hint: "Confirm Password",
+                hint: 'Confirm Password',
                 icon: Icons.lock_outline,
                 isPassword: true,
                 isHidden: _isConfirmHidden,
-                onToggle: () => setState(() => _isConfirmHidden = !_isConfirmHidden),
+                onToggle: () =>
+                    setState(() => _isConfirmHidden = !_isConfirmHidden),
               ),
-
               const SizedBox(height: 25),
 
-              // Текст о публичной оферте
               const Text(
-                "By clicking the Register button, you agree\nto the public offer",
+                'By clicking the Register button, you agree\nto the public offer',
                 textAlign: TextAlign.start,
                 style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
-
               const SizedBox(height: 30),
 
-              // Кнопка Register
+              // Register button
               SizedBox(
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryDark,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                  onPressed: () async {
-                    // 1. Получаем данные из полей
-                    final phone = _phoneController.text.trim();
-                    final pass = _passwordController.text.trim();
-                    final confirmPass = _confirmPasswordController.text.trim();
-
-                    // 2. Валидация (проверка)
-                    if (phone.isEmpty || pass.isEmpty || confirmPass.isEmpty) {
-                      _showError("Please fill in all fields");
-                      return;
-                    }
-
-                    if (pass != confirmPass) {
-                      _showError("Passwords do not match!");
-                      return;
-                    }
-
-                    if (pass.length < 6) {
-                      _showError("Password must be at least 6 characters");
-                      return;
-                    }
-
-                    // 3. Имитация сохранения пользователя (для MVP)
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('showOnboarding', false); // Онбординг больше не нужен
-                    // Можно также сохранить флаг isLoggedIn, если ты его используешь
-
-                    if (!mounted) return;
-
-                    // 4. Успешный переход в главное приложение
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Registration Successful!")),
-                    );
-
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const MainFrameScreen()),
-                          (route) => false, // Очищаем стек экранов, чтобы нельзя было вернуться назад в регистрацию
-                    );
-                  },
-                  child: const Text(
-                    "Register",
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  onPressed: isLoading ? null : _handleSignUp,
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Register',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
+              const SizedBox(height: 30),
 
-              const SizedBox(height: 200),
-
-              // Переход на Login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("I Already Have an Account ", style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    'I Already Have an Account ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                     ),
                     child: const Text(
-                      "Login",
+                      'Login',
                       style: TextStyle(
                         color: primaryDark,
                         fontWeight: FontWeight.bold,
@@ -171,7 +214,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Универсальный виджет поля ввода
   Widget _buildInputBox({
     required TextEditingController controller,
     required String hint,
@@ -197,9 +239,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           prefixIcon: Icon(icon, color: Colors.grey),
           suffixIcon: isPassword
               ? IconButton(
-            icon: Icon(isHidden ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-            onPressed: onToggle,
-          )
+                  icon: Icon(
+                    isHidden ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onToggle,
+                )
               : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 18),
@@ -207,11 +252,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
-}}
+}

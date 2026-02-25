@@ -1,25 +1,24 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/service_model.dart';
 
 class ApiService {
-  // КОГДА ПОЯВИТСЯ БЭКЕНД - ПРОСТО ЗАМЕНИ ЭТУ ССЫЛКУ
-  static const String baseUrl = "https://run.mocky.io/v3/your-mock-id";
+  // Единственный клиент на всё приложение (инициализирован в main.dart)
+  final _client = Supabase.instance.client;
 
+  /// Загружает все посты из Supabase (SELECT)
   Future<List<ServiceItem>> fetchServices() async {
-    try {
-      final response = await http.get(Uri.parse(baseUrl));
+    final response = await _client
+        .from('service_posts')
+        .select()
+        .order('created_at', ascending: false);
 
-      if (response.statusCode == 200) {
-        List<dynamic> body = jsonDecode(response.body);
-        // Предполагаем, что сервер возвращает массив объектов
-        return body.map((json) => ServiceItem.fromJson(json)).toList();
-      } else {
-        throw Exception("Ошибка сервера: ${response.statusCode}");
-      }
-    } catch (e) {
-      throw Exception("Ошибка при запросе данных: $e");
-    }
+    return (response as List<dynamic>)
+        .map((row) => ServiceItem.fromJson(row as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Сохраняет новый пост в Supabase (INSERT)
+  Future<void> insertPost(ServiceItem item) async {
+    await _client.from('service_posts').insert(item.toJson());
   }
 }
