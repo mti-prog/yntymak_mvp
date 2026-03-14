@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_theme.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../providers/locale_provider/locale_provider.dart';
 import '../login_sign_up/login_screen.dart';
 import '../../models/onboarding_model.dart';
 
@@ -13,10 +16,24 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
-  int _currentIndex = 0; // Следим за текущей страницей
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    // Watch locale so we rebuild on change
+    context.watch<LocaleProvider>();
+
+    final titles = [
+      AppLocalizations.tr(context, 'onboarding_title_1'),
+      AppLocalizations.tr(context, 'onboarding_title_2'),
+      AppLocalizations.tr(context, 'onboarding_title_3'),
+    ];
+    final descs = [
+      AppLocalizations.tr(context, 'onboarding_desc_1'),
+      AppLocalizations.tr(context, 'onboarding_desc_2'),
+      AppLocalizations.tr(context, 'onboarding_desc_3'),
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.lightGreenBackGround,
       body: Column(
@@ -39,17 +56,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Image.asset(contents[index].image, height: 300),
                       const SizedBox(height: 40),
                       Text(
-                        contents[index].title,
+                        titles[index],
                         style: Theme.of(context).textTheme.displayLarge
-                            ?.copyWith(
-                              fontSize: 28,
-                              color: AppTheme.dark,
-                            ),
+                            ?.copyWith(fontSize: 28, color: AppTheme.dark),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        contents[index].description,
+                        descs[index],
                         style: Theme.of(context).textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -60,7 +74,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Индикатор (точки)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
@@ -69,29 +82,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Кнопка перехода
           Padding(
             padding: const EdgeInsets.all(40.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.baseGreenBackGround
+                backgroundColor: AppTheme.baseGreenBackGround,
               ),
-              // Внутри метода onPressed кнопки на последнем слайде:
               onPressed: () async {
                 if (_currentIndex < contents.length - 1) {
-                  // Если страница НЕ последняя, просто листаем вперед
                   _controller.nextPage(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                   );
                 } else {
-                  // Если страница ПОСЛЕДНЯЯ, сохраняем настройки и выходим
+                  final navigator = Navigator.of(context);
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setBool('showOnboarding', false);
 
                   if (mounted) {
-                    Navigator.pushReplacement(
-                      context,
+                    navigator.pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const LoginScreen(),
                       ),
@@ -101,7 +110,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               },
               child: Text(
                 style: TextStyle(color: AppTheme.baseGreen),
-                _currentIndex == contents.length - 1 ? "Get Started" : "Next",
+                _currentIndex == contents.length - 1
+                    ? AppLocalizations.tr(context, 'get_started')
+                    : AppLocalizations.tr(context, 'next'),
               ),
             ),
           ),
@@ -110,17 +121,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Виджет одной точки индикатора
   Container buildDot(int index, BuildContext context) {
     return Container(
       height: 10,
-      width: _currentIndex == index ? 25 : 10, // Активная точка длиннее
+      width: _currentIndex == index ? 25 : 10,
       margin: const EdgeInsets.only(right: 5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: _currentIndex == index
-            ? AppTheme.baseGreen
-            : AppTheme.gray,
+        color: _currentIndex == index ? AppTheme.baseGreen : AppTheme.gray,
       ),
     );
   }

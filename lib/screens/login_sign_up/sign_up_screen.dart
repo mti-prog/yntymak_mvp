@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../providers/auth_provider/auth_provider.dart';
+import '../../providers/locale_provider/locale_provider.dart';
+import '../../providers/service_provider/service_provider.dart';
+import '../../providers/volunteer_provider/volunteer_provider.dart';
 import '../main_screens/main/main_frame_screen.dart';
 import 'login_screen.dart';
 
@@ -21,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _isPasswordHidden = true;
   bool _isConfirmHidden = true;
+  String _accountType = 'user';
 
   @override
   void dispose() {
@@ -39,16 +44,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final pass = _passwordController.text.trim();
     final confirmPass = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || pass.isEmpty || confirmPass.isEmpty) {
-      _showError('Please fill in all required fields');
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        pass.isEmpty ||
+        confirmPass.isEmpty) {
+      _showError(AppLocalizations.tr(context, 'fill_all_fields'));
       return;
     }
     if (pass != confirmPass) {
-      _showError('Passwords do not match!');
+      _showError(AppLocalizations.tr(context, 'passwords_no_match'));
       return;
     }
     if (pass.length < 6) {
-      _showError('Password must be at least 6 characters');
+      _showError(AppLocalizations.tr(context, 'password_min_length'));
       return;
     }
 
@@ -57,12 +66,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       password: pass,
       name: name,
       phone: phone,
+      accountType: _accountType,
     );
 
     if (!mounted) return;
     if (error != null) {
       _showError(error);
     } else {
+      context.read<ServiceProvider>().loadData();
+      context.read<VolunteerProvider>().loadData();
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MainFrameScreen()),
@@ -80,6 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
+    context.watch<LocaleProvider>();
     const primaryDark = Color(0xFF1B334B);
 
     return Scaffold(
@@ -91,37 +104,132 @@ class _SignUpScreenState extends State<SignUpScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text(
-                'Create an\naccount',
-                style: TextStyle(
+              Text(
+                AppLocalizations.tr(context, 'create_account_title'),
+                style: const TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                   height: 1.1,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
+
+              // Account Type Selector
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _accountType = 'user'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _accountType == 'user'
+                              ? primaryDark
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _accountType == 'user'
+                                ? primaryDark
+                                : Colors.black12,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              color: _accountType == 'user'
+                                  ? Colors.white
+                                  : Colors.grey,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppLocalizations.tr(context, 'user'),
+                              style: TextStyle(
+                                color: _accountType == 'user'
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () =>
+                          setState(() => _accountType = 'organization'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _accountType == 'organization'
+                              ? const Color(0xFF7B1FA2)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _accountType == 'organization'
+                                ? const Color(0xFF7B1FA2)
+                                : Colors.black12,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.business_outlined,
+                              color: _accountType == 'organization'
+                                  ? Colors.white
+                                  : Colors.grey,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppLocalizations.tr(context, 'organization'),
+                              style: TextStyle(
+                                color: _accountType == 'organization'
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
               // Name
               _buildInputBox(
                 controller: _nameController,
-                hint: 'Your Name',
-                icon: Icons.person_outline,
+                hint: _accountType == 'organization'
+                    ? AppLocalizations.tr(context, 'org_name')
+                    : AppLocalizations.tr(context, 'your_name'),
+                icon: _accountType == 'organization'
+                    ? Icons.business
+                    : Icons.person_outline,
               ),
               const SizedBox(height: 15),
 
               // Email
               _buildInputBox(
                 controller: _emailController,
-                hint: 'Email',
+                hint: AppLocalizations.tr(context, 'email'),
                 icon: Icons.email_outlined,
               ),
               const SizedBox(height: 15),
 
-              // Phone (опционально)
+              // Phone
               _buildInputBox(
                 controller: _phoneController,
-                hint: 'Phone Number (optional)',
+                hint: AppLocalizations.tr(context, 'phone_number'),
                 icon: Icons.phone_outlined,
               ),
               const SizedBox(height: 15),
@@ -129,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Password
               _buildInputBox(
                 controller: _passwordController,
-                hint: 'Password',
+                hint: AppLocalizations.tr(context, 'password'),
                 icon: Icons.lock_outline,
                 isPassword: true,
                 isHidden: _isPasswordHidden,
@@ -141,7 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Confirm Password
               _buildInputBox(
                 controller: _confirmPasswordController,
-                hint: 'Confirm Password',
+                hint: AppLocalizations.tr(context, 'confirm_password'),
                 icon: Icons.lock_outline,
                 isPassword: true,
                 isHidden: _isConfirmHidden,
@@ -150,10 +258,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 25),
 
-              const Text(
-                'By clicking the Register button, you agree\nto the public offer',
+              Text(
+                AppLocalizations.tr(context, 'agree_terms'),
                 textAlign: TextAlign.start,
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 30),
 
@@ -163,7 +271,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 height: 60,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryDark,
+                    backgroundColor: _accountType == 'organization'
+                        ? const Color(0xFF7B1FA2)
+                        : primaryDark,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -171,9 +281,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onPressed: isLoading ? null : _handleSignUp,
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Register',
-                          style: TextStyle(
+                      : Text(
+                          AppLocalizations.tr(context, 'register'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -186,18 +296,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'I Already Have an Account ',
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    AppLocalizations.tr(context, 'already_have_account'),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                     ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.tr(context, 'login'),
+                      style: const TextStyle(
                         color: primaryDark,
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,

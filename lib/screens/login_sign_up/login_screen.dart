@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../providers/auth_provider/auth_provider.dart';
+import '../../providers/locale_provider/locale_provider.dart';
+import '../../providers/service_provider/service_provider.dart';
 import '../main_screens/main/main_frame_screen.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? initialEmail;
+  const LoginScreen({super.key, this.initialEmail});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -17,6 +21,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordHidden = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialEmail != null) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
 
   @override
   void dispose() {
@@ -30,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      _showError('Please fill in all fields');
+      _showError(AppLocalizations.tr(context, 'fill_all_fields'));
       return;
     }
 
@@ -43,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (error != null) {
       _showError(error);
     } else {
+      context.read<ServiceProvider>().loadData();
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MainFrameScreen()),
@@ -60,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
+    context.watch<LocaleProvider>();
     const primaryDark = Color(0xFF1B334B);
 
     return Scaffold(
@@ -71,9 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 60),
-              const Text(
-                'Welcome\nBack!',
-                style: TextStyle(
+              Text(
+                AppLocalizations.tr(context, 'welcome_back'),
+                style: const TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.bold,
                   height: 1.1,
@@ -86,10 +100,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    hintText: 'Email',
-                    hintStyle: TextStyle(color: AppTheme.gray),
-                    prefixIcon: Icon(Icons.email_outlined, color: Colors.grey),
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.tr(context, 'email'),
+                    hintStyle: const TextStyle(color: AppTheme.gray),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: Colors.grey,
+                    ),
                     border: InputBorder.none,
                   ),
                 ),
@@ -102,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: _isPasswordHidden,
                   decoration: InputDecoration(
-                    hintText: 'Password',
+                    hintText: AppLocalizations.tr(context, 'password'),
                     hintStyle: const TextStyle(color: AppTheme.gray),
                     prefixIcon: const Icon(
                       Icons.lock_outline,
@@ -133,9 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       builder: (_) => const ForgotPasswordScreen(),
                     ),
                   ),
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Color(0xFF4A708B)),
+                  child: Text(
+                    AppLocalizations.tr(context, 'forgot_password'),
+                    style: const TextStyle(color: Color(0xFF4A708B)),
                   ),
                 ),
               ),
@@ -155,9 +172,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: isLoading ? null : _handleLogin,
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Login',
-                          style: TextStyle(color: Colors.white, fontSize: 22),
+                      : Text(
+                          AppLocalizations.tr(context, 'login'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                          ),
                         ),
                 ),
               ),
@@ -169,18 +189,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Create An Account ',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    Text(
+                      AppLocalizations.tr(context, 'create_an_account'),
+                      style: const TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const SignUpScreen()),
                       ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.tr(context, 'sign_up'),
+                        style: const TextStyle(
                           color: primaryDark,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

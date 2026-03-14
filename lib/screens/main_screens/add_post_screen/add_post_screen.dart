@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../../core/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../providers/auth_provider/auth_provider.dart';
+import '../../../providers/locale_provider/locale_provider.dart';
 import '../../../providers/service_provider/service_provider.dart';
+import '../../../providers/volunteer_provider/volunteer_provider.dart';
 
-enum PostType { help, service }
+enum PostType { help, service, volunteer, charity }
 
 class AddPostScreen extends StatefulWidget {
   final PostType type;
@@ -13,19 +19,71 @@ class AddPostScreen extends StatefulWidget {
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
   bool _isPosting = false;
+  String _selectedCategory = 'other';
+
+  Map<String, String> get _categories {
+    switch (widget.type) {
+      case PostType.service:
+        return AppLocalizations.categories(context, 'service');
+      case PostType.help:
+        return AppLocalizations.categories(context, 'help');
+      case PostType.volunteer:
+        return AppLocalizations.categories(context, 'volunteer');
+      case PostType.charity:
+        return AppLocalizations.categories(context, 'charity');
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool isHelp = widget.type == PostType.help;
-    final Color bgColor = isHelp
-        ? const Color(0xFFEBF2F0)
-        : const Color(0xFFE2EBF2);
-    final String title = isHelp ? "Add Help Request" : "Add Service";
-    final String hint = isHelp
-        ? "I need help moving to a new apartment tonight"
-        : "Tutoring. I can help with math, science and school homework";
+    context.watch<LocaleProvider>();
+
+    final Color bgColor;
+    switch (widget.type) {
+      case PostType.service:
+        bgColor = AppTheme.serviceBg;
+      case PostType.help:
+        bgColor = AppTheme.helpBg;
+      case PostType.volunteer:
+      case PostType.charity:
+        bgColor = AppTheme.orgBackground;
+    }
+
+    final String screenTitle;
+    switch (widget.type) {
+      case PostType.service:
+        screenTitle = AppLocalizations.tr(context, 'add_service');
+      case PostType.help:
+        screenTitle = AppLocalizations.tr(context, 'add_help_request');
+      case PostType.volunteer:
+        screenTitle = AppLocalizations.tr(context, 'find_volunteers');
+      case PostType.charity:
+        screenTitle = AppLocalizations.tr(context, 'add_charity_post');
+    }
+
+    final String appBarTitle;
+    switch (widget.type) {
+      case PostType.service:
+        appBarTitle = AppLocalizations.tr(context, 'add_service');
+      case PostType.help:
+        appBarTitle = AppLocalizations.tr(context, 'add_help_short');
+      case PostType.volunteer:
+        appBarTitle = AppLocalizations.tr(context, 'volunteer_short');
+      case PostType.charity:
+        appBarTitle = AppLocalizations.tr(context, 'charity_short');
+    }
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -37,125 +95,293 @@ class _AddPostScreenState extends State<AddPostScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          isHelp ? "Add Help" : "Add Service",
+          appBarTitle,
           style: const TextStyle(color: Colors.grey, fontSize: 16),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1B334B),
-              ),
-            ),
-            const SizedBox(height: 60),
-
-            // Поле ввода
-            Container(
-              height: 180,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _controller,
-                maxLines: null,
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: TextStyle(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              Text(
+                screenTitle,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B334B),
                 ),
               ),
-            ),
+              const SizedBox(height: 30),
 
-            const SizedBox(height: 25),
+              _buildCategorySelector(),
+              const SizedBox(height: 16),
 
-            // Кнопка Public — ждём завершения INSERT
-            Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 120,
-                height: 45,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1B334B),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              _buildInputField(
+                controller: _titleController,
+                hint: AppLocalizations.tr(context, 'field_title_hint'),
+                label: AppLocalizations.tr(context, 'field_title'),
+                icon: Icons.title,
+                maxLines: 1,
+              ),
+              const SizedBox(height: 16),
+
+              _buildInputField(
+                controller: _descController,
+                hint: AppLocalizations.tr(context, 'field_desc_hint'),
+                label: AppLocalizations.tr(context, 'field_desc'),
+                icon: Icons.description_outlined,
+                maxLines: 4,
+                minHeight: 120,
+              ),
+              const SizedBox(height: 16),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.tr(context, 'field_price_hint'),
+                    hintStyle: TextStyle(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.payments_outlined,
+                      color: Color(0xFF1B334B),
+                    ),
+                    suffixText: AppLocalizations.tr(context, 'currency'),
+                    suffixStyle: const TextStyle(
+                      color: Color(0xFF1B334B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    border: InputBorder.none,
                   ),
-                  onPressed: _isPosting
-                      ? null
-                      : () async {
-                          final text = _controller.text.trim();
-                          if (text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please enter a description'),
-                              ),
-                            );
-                            return;
-                          }
-                          setState(() => _isPosting = true);
-
-                          final error = await context
-                              .read<ServiceProvider>()
-                              .addPost(text, widget.type);
-
-                          if (!context.mounted) return;
-                          setState(() => _isPosting = false);
-
-                          if (error == null) {
-                            // Успех — закрываем форму
-                            Navigator.pop(context);
-                          } else {
-                            // Ошибка — показываем SnackBar, форма остаётся открытой
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to publish: $error'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                          }
-                        },
-                  child: _isPosting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          "Public",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 30),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: 140,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.darkBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: _isPosting ? null : _submitPost,
+                    child: _isPosting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            AppLocalizations.tr(context, 'publish'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        initialValue: _selectedCategory == 'other' ? null : _selectedCategory,
+        decoration: const InputDecoration(
+          prefixIcon: Icon(Icons.category_outlined, color: Color(0xFF1B334B)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 12),
+        ),
+        hint: Text(
+          AppLocalizations.tr(context, 'select_category'),
+          style: TextStyle(
+            color: Colors.black.withValues(alpha: 0.5),
+            fontSize: 14,
+          ),
+        ),
+        isExpanded: true,
+        icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1B334B)),
+        items: _categories.entries.map((e) {
+          return DropdownMenuItem<String>(
+            value: e.key,
+            child: Text(e.value, style: const TextStyle(fontSize: 14)),
+          );
+        }).toList(),
+        onChanged: (val) {
+          if (val != null) setState(() => _selectedCategory = val);
+        },
+      ),
+    );
+  }
+
+  void _submitPost() async {
+    final title = _titleController.text.trim();
+    final desc = _descController.text.trim();
+
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.tr(context, 'enter_title'))),
+      );
+      return;
+    }
+
+    if (_selectedCategory == 'other') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.tr(context, 'select_category_err')),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isPosting = true);
+
+    final price = int.tryParse(_priceController.text.trim()) ?? 0;
+    final auth = context.read<AuthProvider>();
+
+    final String? error;
+    if (widget.type == PostType.volunteer || widget.type == PostType.charity) {
+      error = await context.read<VolunteerProvider>().addPost(
+        title,
+        desc,
+        widget.type,
+        userName: auth.userName,
+        userPhone: auth.userPhone,
+        userAvatar: auth.avatarUrl ?? '',
+        price: price,
+        category: _selectedCategory,
+      );
+    } else {
+      error = await context.read<ServiceProvider>().addPost(
+        title,
+        desc,
+        widget.type,
+        userName: auth.userName,
+        userPhone: auth.userPhone,
+        userAvatar: auth.avatarUrl ?? '',
+        price: price,
+        category: _selectedCategory,
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _isPosting = false);
+
+    if (error == null) {
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${AppLocalizations.tr(context, 'publish_fail')}$error',
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hint,
+    required String label,
+    required IconData icon,
+    int maxLines = 1,
+    double minHeight = 0,
+  }) {
+    return Container(
+      constraints: BoxConstraints(minHeight: minHeight),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: AppTheme.darkBlue),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1B334B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            maxLines: maxLines,
+            decoration: InputDecoration.collapsed(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.black.withValues(alpha: 0.4),
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

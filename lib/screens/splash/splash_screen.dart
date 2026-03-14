@@ -1,11 +1,10 @@
-import 'package:YntymakAppMVP/screens/main_screens/main/main_frame_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/app_theme.dart';
-import '../../core/storage_service/storage_service.dart';
 import '../board/onboarding_screen.dart';
 import '../login_sign_up/login_screen.dart';
-
+import '../main_screens/main/main_frame_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,40 +17,38 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initApp(); // Запускаем одну общую логику
+    _initApp();
   }
 
   void _initApp() async {
-    // 1. Пауза для показа логотипа
     await Future.delayed(const Duration(seconds: 3));
 
-    // 2. Проверяем, видел ли пользователь Onboarding
     final prefs = await SharedPreferences.getInstance();
     final bool showOnboarding = prefs.getBool('showOnboarding') ?? true;
 
     if (!mounted) return;
 
     if (showOnboarding) {
-      // Если ни разу не заходил — показываем онбординг
+      // Первый раз — показываем онбординг
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
       );
     } else {
-      // Если онбординг уже видел — проверяем, залогинен ли он
-      bool loggedIn = await StorageService.isLoggedIn();
+      // Проверяем реальную сессию Supabase
+      final session = Supabase.instance.client.auth.currentSession;
 
-      if (!mounted) return;
-
-      if (loggedIn) {
+      if (session != null) {
+        // Сессия есть — сразу в приложение
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainFrameScreen()),
+          MaterialPageRoute(builder: (_) => const MainFrameScreen()),
         );
       } else {
+        // Сессии нет — на логин
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     }
@@ -65,14 +62,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 150,
-              height: 150,
-            ),
+            Image.asset('assets/images/logo.png', width: 150, height: 150),
             const SizedBox(height: 20),
             const Text(
-              "YNTYMAK",
+              'YNTYMAK',
               style: TextStyle(
                 color: AppTheme.dark,
                 fontSize: 32,

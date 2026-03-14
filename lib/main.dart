@@ -1,24 +1,33 @@
-import 'package:YntymakAppMVP/providers/auth_provider/auth_provider.dart';
-import 'package:YntymakAppMVP/providers/service_provider/service_provider.dart';
-import 'package:YntymakAppMVP/screens/splash/splash_screen.dart';
+import 'package:yntymak_app_mvp/core/app_theme.dart';
+import 'package:yntymak_app_mvp/providers/auth_provider/auth_provider.dart';
+import 'package:yntymak_app_mvp/providers/locale_provider/locale_provider.dart';
+import 'package:yntymak_app_mvp/providers/service_provider/service_provider.dart';
+import 'package:yntymak_app_mvp/providers/translation_provider/translation_provider.dart';
+import 'package:yntymak_app_mvp/providers/volunteer_provider/volunteer_provider.dart';
+import 'package:yntymak_app_mvp/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: '.env');
+
   await Supabase.initialize(
-    url: 'https://ktvtnxmwdgrjuwtbntke.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0dnRueG13ZGdyanV3dGJudGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NjQyNjQsImV4cCI6MjA4NzI0MDI2NH0.t7FlME8h3m0bqxUBfqt4_YDAVv9XHf35B-Oc_dbaW9s',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ServiceProvider()),
+        ChangeNotifierProvider(create: (_) => VolunteerProvider()),
+        ChangeNotifierProvider(create: (_) => TranslationProvider()),
       ],
       child: const MyApp(),
     ),
@@ -30,9 +39,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      theme: AppTheme.lightTheme,
+      home: const SplashScreen(),
     );
   }
 }

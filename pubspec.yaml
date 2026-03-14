@@ -1,4 +1,4 @@
-name: YntymakAppMVP
+name: yntymak_app_mvp
 description: "Yntymak App"
 publish_to: 'none'
 
@@ -16,6 +16,9 @@ dependencies:
   url_launcher: ^6.3.2
   http: ^1.6.0
   supabase_flutter: ^2.12.0
+  image_picker: ^1.2.1
+  translator: ^1.0.4+1
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +30,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/images/logo.png
     - assets/images/app_logo.png
     - assets/images/onboarding_first.png

@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
+import '../core/localization/app_localizations.dart';
 import '../models/service_model.dart';
+import '../providers/locale_provider/locale_provider.dart';
+import '../providers/translation_provider/translation_provider.dart';
 import '../screens/main_screens/detail_screen/service_details_screen.dart';
 
 class HelpCard extends StatelessWidget {
   final ServiceItem service;
   final VoidCallback onFavoritePressed;
+  final VoidCallback? onDelete;
 
   const HelpCard({
     super.key,
     required this.service,
     required this.onFavoritePressed,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Оборачиваем всё в GestureDetector для перехода
+    final locale = context.watch<LocaleProvider>().locale;
+    final translator = context.watch<TranslationProvider>();
+    final title = translator.translate(service.title, locale);
+    final description = translator.translate(service.description, locale);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -42,12 +52,26 @@ class HelpCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 2. Оборачиваем аватар в Hero для анимации
             Hero(
-              tag: 'image_${service.id}', // Тег должен быть уникальным
+              tag: 'image_${service.id}',
               child: CircleAvatar(
                 radius: 35,
-                backgroundImage: NetworkImage(service.userAvatar),
+                backgroundColor: AppTheme.lightBlueBackground,
+                backgroundImage: service.userAvatar.isNotEmpty
+                    ? NetworkImage(service.userAvatar)
+                    : null,
+                child: service.userAvatar.isEmpty
+                    ? Text(
+                        service.userName.isNotEmpty
+                            ? service.userName[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.dark,
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(width: 16),
@@ -58,49 +82,89 @@ class HelpCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        service.userName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.dark,
+                      Flexible(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.dark,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                            if (service.isVerified) ...[
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.verified,
+                                color: Color(0xFF1DA1F2),
+                                size: 16,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      // Кнопка избранного (убрал лишний GestureDetector вокруг IconButton)
-                      IconButton(
-                        icon: Icon(
-                          service.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: service.isFavorite ? AppTheme.baseGreen : AppTheme.baseGreen,
-                        ),
-                        onPressed: onFavoritePressed,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              service.isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: AppTheme.baseGreen,
+                            ),
+                            onPressed: onFavoritePressed,
+                          ),
+                          if (onDelete != null)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: onDelete,
+                            ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    service.title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.dark,
-                      height: 1.3,
+                  if (description.isNotEmpty)
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.dark,
+                        height: 1.3,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        service.isPaid ? 'Paid' : 'Free',
-                        style: const TextStyle(
+                        service.price > 0
+                            ? '${service.price} ${AppLocalizations.tr(context, 'som')}'
+                            : AppLocalizations.tr(context, 'card_free'),
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.dark,
+                          color: service.price > 0
+                              ? const Color(0xFF2E7D32)
+                              : AppTheme.dark,
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.dark,
                           borderRadius: BorderRadius.circular(20),
